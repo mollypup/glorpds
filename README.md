@@ -1,8 +1,7 @@
-# glorpds [WIP]
+# glorpds
 A *not so* from-scratch (but rather glorpy!) atproto PDS implementation that dreams of becoming spamware. 
 
-glorpds is a fork of david's millipds, which is less glorpy
-
+glorpds is a fork of david's millipds, which is less glorpy. it's unlikely that you will ever want to use this. 
 glorpds is intended to be a scrunkly pile of junk that offers more flexibility for scripting than millipds. the purpose is to provide an easy to use api for spinning up pds' and accounts, going for good enough and generic 
 
 differences from millipds: 
