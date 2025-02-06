@@ -8,9 +8,9 @@ build-backend = "setuptools.build_meta"
 name = "glorpds"
 dynamic = ["version"]
 authors = [
- 	{ name="David Buchanan", email="d@vidbuchanan.co.uk" },
+ 	{ name="molly", email="bunnyl0v3rr@proton.me" },
 ]
-description = "A lightweight atproto PDS"
+description = "A glorpy atproto PDS"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -47,8 +47,8 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/DavidBuchanan314/glorpds"
-Issues = "https://github.com/DavidBuchanan314/glorpds/issues"
+Homepage = "https://github.com/mollypup/glorpds"
+Issues = "https://github.com/mollypup/glorpds/issues"
 
 [project.scripts]
 glorpds = "glorpds.__main__:main"
