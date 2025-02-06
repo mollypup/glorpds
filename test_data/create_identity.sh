@@ -19,16 +19,16 @@ DID_LOG_PATH="${HANDLE}_did.txt"
 
 echo "Generating keys..."
 
-millipds util keygen > $ROTATION_KEY_PATH
-millipds util keygen > $REPO_KEY_PATH
+glorpds util keygen > $ROTATION_KEY_PATH
+glorpds util keygen > $REPO_KEY_PATH
 
 DID_PLC=$(
-	millipds util plcgen \
+	glorpds util plcgen \
 		--genesis_json=$GENESIS_JSON_PATH \
 		--rotation_key=$ROTATION_KEY_PATH \
 		--handle=$HANDLE \
 		--pds_host=$PDS_HOST \
-		--repo_pubkey=$(millipds util print_pubkey $REPO_KEY_PATH)
+		--repo_pubkey=$(glorpds util print_pubkey $REPO_KEY_PATH)
 )
 
 echo $DID_PLC > $DID_LOG_PATH

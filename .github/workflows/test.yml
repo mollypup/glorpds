@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install millipds python module
+      - name: Install glorpds python module
         run: |
           python3 -m pip install .[test]
       - name: Run the tests

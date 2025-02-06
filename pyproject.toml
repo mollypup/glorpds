@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "millipds"
+name = "glorpds"
 dynamic = ["version"]
 authors = [
  	{ name="David Buchanan", email="d@vidbuchanan.co.uk" },
@@ -47,11 +47,11 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/DavidBuchanan314/millipds"
-Issues = "https://github.com/DavidBuchanan314/millipds/issues"
+Homepage = "https://github.com/DavidBuchanan314/glorpds"
+Issues = "https://github.com/DavidBuchanan314/glorpds/issues"
 
 [project.scripts]
-millipds = "millipds.__main__:main"
+glorpds = "glorpds.__main__:main"
 
 [tool.ruff]
 line-length = 80

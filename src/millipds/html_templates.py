@@ -1,5 +1,5 @@
 """
-we don't have much HTML to render for millipds (just OAuth UI, currently), so
+we don't have much HTML to render for glorpds (just OAuth UI, currently), so
 there's really no need to pull in a proper templating framework.
 
 use https://marketplace.visualstudio.com/items?itemName=samwillis.python-inline-source
@@ -132,7 +132,7 @@ AUTH_PANEL_HEAD: html = """\
 	</head>
 	<body>
 		<div class="panel">
-			<h1>millipds</h1>
+			<h1>glorpds</h1>
 """
 
 AUTH_PANEL_TAIL: html = """

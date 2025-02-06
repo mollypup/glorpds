@@ -1,16 +1,16 @@
-"""millipds CLI
+"""glorpds CLI
 
 Usage:
-  millipds init <hostname> [--dev | --sandbox]
-  millipds config [--pds_pfx=URL] [--pds_did=DID] [--bsky_appview_pfx=URL] [--bsky_appview_did=DID]
-  millipds account create <did> <handle> [--unsafe_password=PW] [--signing_key=PEM]
-  millipds run [--sock_path=PATH] [--listen_host=HOST] [--listen_port=PORT]
-  millipds util keygen [--p256 | --k256]
-  millipds util print_pubkey <pem>
-  millipds util plcgen --genesis_json=PATH --rotation_key=PEM --handle=HANDLE --pds_host=URL --repo_pubkey=DIDKEY
-  millipds util plcsign --unsigned_op=PATH --rotation_key=PEM [--prev_op=PATH]
-  millipds (-h | --help)
-  millipds --version
+  glorpds init <hostname> [--dev | --sandbox]
+  glorpds config [--pds_pfx=URL] [--pds_did=DID] [--bsky_appview_pfx=URL] [--bsky_appview_did=DID]
+  glorpds account create <did> <handle> [--unsafe_password=PW] [--signing_key=PEM]
+  glorpds run [--sock_path=PATH] [--listen_host=HOST] [--listen_port=PORT]
+  glorpds util keygen [--p256 | --k256]
+  glorpds util print_pubkey <pem>
+  glorpds util plcgen --genesis_json=PATH --rotation_key=PEM --handle=HANDLE --pds_host=URL --repo_pubkey=DIDKEY
+  glorpds util plcsign --unsigned_op=PATH --rotation_key=PEM [--prev_op=PATH]
+  glorpds (-h | --help)
+  glorpds --version
 
 Init:
   Initialise the database. Must be done before any other commands will work.
@@ -33,7 +33,7 @@ Config:
 
 Account Create:
   Create a new user account on the PDS. Bring your own DID and corresponding
-  handle - millipds will not (yet?) attempt to validate either.
+  handle - glorpds will not (yet?) attempt to validate either.
   You'll be prompted for a password interactively.
 
   --unsafe_password=PW  Specify password non-iteractively, for use in test scripts etc.
@@ -83,12 +83,12 @@ logging.basicConfig(level=logging.DEBUG)  # TODO: make this configurable?
 
 def main():
 	"""
-	This is the entrypoint for the `millipds` command (declared in project.scripts)
+	This is the entrypoint for the `glorpds` command (declared in project.scripts)
 	"""
 
 	args = docopt(
 		__doc__,
-		version=f"millipds version {importlib.metadata.version('millipds')}",
+		version=f"glorpds version {importlib.metadata.version('glorpds')}",
 	)
 
 	if args["init"]:
@@ -251,7 +251,7 @@ def main():
 
 
 """
-This is the entrypoint for python3 -m millipds
+This is the entrypoint for python3 -m glorpds
 """
 if __name__ == "__main__":
 	main()

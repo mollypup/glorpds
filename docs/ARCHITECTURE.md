@@ -1,8 +1,8 @@
-# A guided tour of the millipds codebase
+# A guided tour of the glorpds codebase
 
-The source is in `src/millipds/`.
+The source is in `src/glorpds/`.
 
-The entrypoint for the main `millipds` command is `__main__.py`. CLI arg parsing happens here.
+The entrypoint for the main `glorpds` command is `__main__.py`. CLI arg parsing happens here.
 
 If you choose to launch the server, it calls out to `service.py`, which sets up an `aiohttp` application.
 

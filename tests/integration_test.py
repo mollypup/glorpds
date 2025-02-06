@@ -8,9 +8,9 @@ import dataclasses
 import aiohttp
 import aiohttp.web
 
-from millipds import service
-from millipds import database
-from millipds import crypto
+from glorpds import service
+from glorpds import database
+from glorpds import crypto
 
 
 @dataclasses.dataclass
@@ -55,7 +55,7 @@ async def test_pds(aiolib):
 	queue = asyncio.Queue()
 	with tempfile.TemporaryDirectory() as tempdir:
 		async with aiohttp.ClientSession() as client:
-			db_path = f"{tempdir}/millipds-0000.db"
+			db_path = f"{tempdir}/glorpds-0000.db"
 			db = database.Database(path=db_path)
 
 			hostname = "localhost:0"

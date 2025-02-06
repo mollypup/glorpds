@@ -59,7 +59,7 @@ async def atproto_service_proxy_middleware(request: web.Request, handler):
 
 @routes.get("/")
 async def hello(request: web.Request):
-	version = importlib.metadata.version("millipds")
+	version = importlib.metadata.version("glorpds")
 	msg = f"""
                           ,dPYb, ,dPYb,                           8I
                           IP'`Yb IP'`Yb                           8I
@@ -78,9 +78,9 @@ async def hello(request: web.Request):
                                               I8
 
 
-Hello! This is an ATProto PDS instance, running millipds v{version}
+Hello! This is an ATProto PDS instance, running glorpds v{version}
 
-https://github.com/DavidBuchanan314/millipds
+https://github.com/DavidBuchanan314/glorpds
 """
 
 	return web.Response(text=msg)
@@ -137,8 +137,8 @@ async def favicon(request: web.Request):
 # not a spec'd endpoint, but the reference impl has this too
 @routes.get("/xrpc/_health")
 async def health(request: web.Request):
-	version = importlib.metadata.version("millipds")
-	return web.json_response({"version": f"millipds v{version}"})
+	version = importlib.metadata.version("glorpds")
+	return web.json_response({"version": f"glorpds v{version}"})
 
 
 # we should not be implementing bsky-specific logic here!
@@ -462,7 +462,7 @@ def construct_app(
 	)
 
 	client.headers.update(
-		{"User-Agent": importlib.metadata.version("millipds")}
+		{"User-Agent": importlib.metadata.version("glorpds")}
 	)
 
 	did_resolver = DIDResolver(client, static_config.PLC_DIRECTORY_HOST)
@@ -498,7 +498,7 @@ async def run(
 	port: int,
 ):
 	"""
-	This gets invoked via millipds.__main__.py
+	This gets invoked via glorpds.__main__.py
 	"""
 
 	app = construct_app(routes, db, client)

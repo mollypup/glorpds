@@ -7,8 +7,8 @@ HANDLE="bob.test"
 
 rm -rf ./data
 
-millipds init millipds.test
-millipds config --pds_pfx=http://$PDS_HOST
+glorpds init glorpds.test
+glorpds config --pds_pfx=http://$PDS_HOST
 
 
 # generates keys and publishes to PLC
@@ -16,8 +16,8 @@ millipds config --pds_pfx=http://$PDS_HOST
 DID_PLC=$(cat "${HANDLE}_did.txt")
 
 # create the account using the generated identity
-millipds account create $DID_PLC $HANDLE --unsafe_password="lol" --signing_key="${HANDLE}_repo_key.pem"
+glorpds account create $DID_PLC $HANDLE --unsafe_password="lol" --signing_key="${HANDLE}_repo_key.pem"
 
-#millipds run
+#glorpds run
 # curl --json '{"hostname": "http://192.168.0.97:8123"}' "http://192.168.0.73:2470/xrpc/com.atproto.sync.requestCrawl"
 # curl --json '{"hostname": "http://192.168.0.97:8123"}' "http://192.168.0.73:2470/admin/pds/requestCrawl" -H "Authorization: Bearer localdev"

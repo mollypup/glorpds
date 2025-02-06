@@ -5,7 +5,7 @@ import apsw.bestpractice
 
 apsw.bestpractice.apply(apsw.bestpractice.recommended)
 
-from millipds import static_config
+from glorpds import static_config
 
 
 def migrate(con: apsw.Connection):

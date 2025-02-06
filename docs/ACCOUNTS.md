@@ -10,7 +10,7 @@ Millipds does not hold did:plc rotation keys, and therefore it cannot make DID d
 
 Millipds *does* however need to hold a repo signing key.
 
-Below, I assume you have two separate machines, the "server" (where the millipds server runs) and the "local machine". If you don't care about security (keeping rotation keys off the server) you can ignore that distinction and run all the commands on the server.
+Below, I assume you have two separate machines, the "server" (where the glorpds server runs) and the "local machine". If you don't care about security (keeping rotation keys off the server) you can ignore that distinction and run all the commands on the server.
 
 ## New Account (with did:plc)
 
@@ -18,9 +18,9 @@ These instructions assume you're creating a user with handle `bob.example.com`, 
 
 On the **local machine**:
 ```sh
-git clone https://github.com/DavidBuchanan314/millipds
-cd millipds
-python3 -m pip install . # install the millipds command (use a venv if you want, I guess)
+git clone https://github.com/DavidBuchanan314/glorpds
+cd glorpds
+python3 -m pip install . # install the glorpds command (use a venv if you want, I guess)
 ./test_data/create_identity.sh bob.example.com https://pds.example.com https://plc.directory
 ```
 
@@ -45,9 +45,9 @@ You'll need to copy `*_repo_key.pem` onto the server, however. (This key should 
 
 Now, on the **server**:
 ```sh
-sudo -u millipds -s
+sudo -u glorpds -s
 source ~/.venv/bin/activate
-millipds account create did:plc:shnwoo25lrvyq3gijyjdmmal bob.example.com --signing_key=bob.example.com_repo_key.pem
+glorpds account create did:plc:shnwoo25lrvyq3gijyjdmmal bob.example.com --signing_key=bob.example.com_repo_key.pem
 ```
 
 Edit the DID per the one you just generated above, and the handle and signing key path likewise.
@@ -57,7 +57,7 @@ You'll be prompted to enter a new password for the account, interactively. On su
 ```
 Password for new account: 
 Confirm password: 
-INFO:millipds.database:creating account for did=did:plc:shnwoo25lrvyq3gijyjdmmal, handle=bob.example.com
+INFO:glorpds.database:creating account for did=did:plc:shnwoo25lrvyq3gijyjdmmal, handle=bob.example.com
 ```
 
 You also need to make sure the handle resolves. In this example, you'd create a TXT DNS record at `_atproto.bob.example` with value `did=did:plc:shnwoo25lrvyq3gijyjdmmal` (or use the .well-known method, see atproto docs. TODO: link)
@@ -70,7 +70,7 @@ You'll probably run into some error messages because the relay doesn't know abou
 curl --json '{"hostname": "https://pds.example.com"}' "https://bsky.network/xrpc/com.atproto.sync.requestCrawl"
 ```
 
-Now we need to emit an `#identity` event. This can be done by heading to your settings in `bsky.app` and "changing" your handle to the value it already is (e.g. `bob.example.com`) - this tells millipds to emit an `#identity` event. (I'll make this part more automatic in the future) (Note: as a temp workaround, this will also generate an `#account` event, which is maybe-necessary. unsure! In the future this should be triggered by account creation itself, probably.)
+Now we need to emit an `#identity` event. This can be done by heading to your settings in `bsky.app` and "changing" your handle to the value it already is (e.g. `bob.example.com`) - this tells glorpds to emit an `#identity` event. (I'll make this part more automatic in the future) (Note: as a temp workaround, this will also generate an `#account` event, which is maybe-necessary. unsure! In the future this should be triggered by account creation itself, probably.)
 
 The relay should be paying attention now, but maybe not the appview. To make the appview start indexing your posts, I *think* you need to create a bluesky profile record first, which can be done by setting your display name and/or bio (e.g. from `bsky.app`).
 
@@ -82,4 +82,4 @@ TODO (but it's conceptually not that different to did:plc, I bet you can figure 
 
 ## Inbound Migration
 
-TODO (millipds doesn't even support this yet, but one day it will)
+TODO (glorpds doesn't even support this yet, but one day it will)

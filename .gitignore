@@ -159,5 +159,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# millipds data dir (should only end up here during local testing of dev builds)
+# glorpds data dir (should only end up here during local testing of dev builds)
 data/
