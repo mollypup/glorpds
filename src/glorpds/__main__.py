@@ -82,176 +82,235 @@ logging.basicConfig(level=logging.DEBUG)  # TODO: make this configurable?
 
 
 def main():
-	"""
-	This is the entrypoint for the `glorpds` command (declared in project.scripts)
-	"""
+    """
+    This is the entrypoint for the `glorpds` command (declared in project.scripts)
+    """
 
-	args = docopt(
-		__doc__,
-		version=f"glorpds version {importlib.metadata.version('glorpds')}",
-	)
+    args = docopt(
+        __doc__,
+        version=f"glorpds version {importlib.metadata.version('glorpds')}",
+    )
 
-	if args["init"]:
-		db = database.Database()
-		if db.config_is_initialised():
-			print(
-				"Already initialised! Use the `config` command to make changes,"
-				" or manually delete the db and try again."
-			)
-			return
-		if args["--dev"]:  # like prod but http://
-			db.update_config(
-				pds_pfx=f'http://{args["<hostname>"]}',
-				pds_did=f'did:web:{urllib.parse.quote(args["<hostname>"])}',
-				bsky_appview_pfx="https://api.bsky.app",
-				bsky_appview_did="did:web:api.bsky.app",
-			)
-		elif args[
-			"--sandbox"
-		]:  # now-defunct, need to figure out how to point at local infra
-			db.update_config(
-				pds_pfx=f'https://{args["<hostname>"]}',
-				pds_did=f'did:web:{urllib.parse.quote(args["<hostname>"])}',
-				bsky_appview_pfx="https://api.bsky-sandbox.dev",
-				bsky_appview_did="did:web:api.bsky-sandbox.dev",
-			)
-		else:  # "prod" presets
-			db.update_config(
-				pds_pfx=f'https://{args["<hostname>"]}',
-				pds_did=f'did:web:{urllib.parse.quote(args["<hostname>"])}',
-				bsky_appview_pfx="https://api.bsky.app",
-				bsky_appview_did="did:web:api.bsky.app",
-			)
-		assert db.config_is_initialised()
-		db.print_config()
-		return
-	elif args["util"]:
-		if args["keygen"]:  # TODO: deprecate in favour of openssl?
-			if args["--k256"]:
-				privkey = (
-					crypto.keygen_k256()
-				)  # openssl ecparam -name secp256k1 -genkey -noout
-			else:  # default
-				privkey = (
-					crypto.keygen_p256()
-				)  # openssl ecparam -name prime256v1 -genkey -noout
-			print(crypto.privkey_to_pem(privkey), end="")
-		elif args["print_pubkey"]:
-			with open(args["<pem>"]) as pem:
-				pem_data = pem.read()
-			try:
-				pubkey = crypto.privkey_from_pem(pem_data).public_key()
-			except ValueError:
-				pubkey = crypto.pubkey_from_pem(pem_data)
-			print(crypto.encode_pubkey_as_did_key(pubkey))
-		elif args["plcgen"]:
-			with open(args["--rotation_key"]) as pem:
-				rotation_key = crypto.privkey_from_pem(pem.read())
-			if not args["--repo_pubkey"].startswith("did:key:z"):
-				raise ValueError("invalid did:key")
-			genesis = {
-				"type": "plc_operation",
-				"rotationKeys": [
-					crypto.encode_pubkey_as_did_key(rotation_key.public_key())
-				],
-				"verificationMethods": {"atproto": args["--repo_pubkey"]},
-				"alsoKnownAs": ["at://" + args["--handle"]],
-				"services": {
-					"atproto_pds": {
-						"type": "AtprotoPersonalDataServer",
-						"endpoint": args["--pds_host"],
-					}
-				},
-				"prev": None,
-			}
-			genesis["sig"] = crypto.plc_sign(rotation_key, genesis)
-			genesis_digest = hashlib.sha256(
-				cbrrr.encode_dag_cbor(genesis)
-			).digest()
-			plc = (
-				"did:plc:"
-				+ base64.b32encode(genesis_digest)[:24].lower().decode()
-			)
-			with open(args["--genesis_json"], "w") as out:
-				json.dump(genesis, out, indent=4)
-			print(plc)
-		elif args["plcsign"]:
-			with open(args["--unsigned_op"]) as op_json:
-				op = json.load(op_json)
-			with open(args["--rotation_key"]) as pem:
-				rotation_key = crypto.privkey_from_pem(pem.read())
-			if args["--prev_op"]:
-				with open(args["--prev_op"]) as op_json:
-					prev_op = json.load(op_json)
-				op["prev"] = cbrrr.CID.cidv1_dag_cbor_sha256_32_from(
-					cbrrr.encode_dag_cbor(prev_op)
-				).encode()
-			del op["sig"]  # remove any existing sig
-			op["sig"] = crypto.plc_sign(rotation_key, op)
-			print(json.dumps(op, indent=4))
-		else:
-			print("invalid util subcommand")
-		return
+    if args["init"]:
+        init(hostname=args["<hostname>"],
+             dev=args["--dev"], sandbox=args["--sandbox"])
 
-	# everything after this point requires an already-inited db
-	db = database.Database()
-	if not db.config_is_initialised():
-		print("Config uninitialised! Try the `init` command")
-		return
+    elif args["util"]:
+        if args["keygen"]:  # TODO: deprecate in favour of openssl?
+            keygen(args["--k256"])
+        elif args["print_pubkey"]:
+            print_pubkey(args["<pem>"])
+        elif args["plcgen"]:
+            plcgen(
+                rotation_key=args["--rotation_key"],
+                repo_pubkey=args["--repo_pubkey"],
+                handle=args["--handle"],
+                pds_host=args["--pds_host"],
+                genesis_json=args["--genesis_json"]
+            )
+        elif args["plcsign"]:
+            plcsign(
+                unsigned_op=args["--unsigned_op"],
+                rotation_key=args["--rotation_key"],
+                prev_op=args["--prev_op"]
+            )
+        else:
+            print("invalid util subcommand")
+        return
 
-	if args["config"]:
-		db.update_config(
-			pds_pfx=args["--pds_pfx"],
-			pds_did=args["--pds_did"],
-			bsky_appview_pfx=args["--bsky_appview_pfx"],
-			bsky_appview_did=args["--bsky_appview_did"],
-		)
-		db.print_config()
-	elif args["account"]:
-		if args["create"]:
-			pw = args["--unsafe_password"]
-			if pw:
-				print(
-					"WARNING: passing a password as a CLI arg is not recommended, for security"
-				)
-			else:
-				pw = getpass("Password for new account: ")
-				if getpass("Confirm password: ") != pw:
-					print("error: password mismatch")
-					return
-			pem_path = args["--signing_key"]
-			if pem_path:
-				privkey = crypto.privkey_from_pem(open(pem_path).read())
-			else:
-				privkey = crypto.keygen_p256()
-			db.create_account(
-				did=args["<did>"],
-				handle=args["<handle>"],
-				password=pw,
-				privkey=privkey,
-			)
-		else:
-			print("invalid account subcommand")
-	elif args["run"]:
+    # everything after this point requires an already-inited db
+    db = database.Database()
+    if not db.config_is_initialised():
+        print("Config uninitialised! Try the `init` command")
+        return
 
-		async def run_service_with_client():
-			# TODO: option to use regular unsafe client for local dev testing
-			async with get_ssrf_safe_client() as client:
-				await service.run(
-					db=db,
-					client=client,
-					sock_path=args["--sock_path"],
-					host=args["--listen_host"],
-					port=int(args["--listen_port"]),
-				)
+    if args["config"]:
+        config(
+            db=db,
+            pds_pfx=args["--pds_pfx"],
+            pds_did=args["--pds_did"],
+            bsky_appview_pfx=args["--bsky_appview_pfx"],
+            bsky_appview_did=args["--bsky_appview_did"]
+        )
+    elif args["account"]:
+        if args["create"]:
+            account_create(
+                db=db,
+                did=args["<did>"],
+                handle=args["<handle>"],
+                unsafe_password=args["--unsafe_password"],
+                signing_key=args["--signing_key"]
+            )
+        else:
+            print("invalid account subcommand")
+    elif args["run"]:
+        run(
+            db=db,
+            sock_path=args["--sock_path"],
+            host=args["--listen_host"],
+            port=args["--listen_port"]
+        )
+    else:
+        print("CLI arg parse error?!")
 
-		asyncio.run(run_service_with_client())
-	else:
-		print("CLI arg parse error?!")
+
+def init(hostname, dev=False, sandbox=False):
+    db = database.Database()
+    if db.config_is_initialised():
+        print(
+            "Already initialised! Use the `config` command to make changes,"
+            " or manually delete the db and try again."
+        )
+        return
+    if sandbox:  # like prod but http://
+        db.update_config(
+            pds_pfx=f'http://{hostname}',
+            pds_did=f'did:web:{urllib.parse.quote(hostname)}',
+            bsky_appview_pfx="https://api.bsky.app",
+            bsky_appview_did="did:web:api.bsky.app",
+        )
+    elif dev:  # now-defunct, need to figure out how to point at local infra
+        db.update_config(
+            pds_pfx=f'https://{hostname}',
+            pds_did=f'did:web:{urllib.parse.quote(hostname)}',
+            bsky_appview_pfx="https://api.bsky-sandbox.dev",
+            bsky_appview_did="did:web:api.bsky-sandbox.dev",
+        )
+    else:  # "prod" presets
+        db.update_config(
+            pds_pfx=f'https://{hostname}',
+            pds_did=f'did:web:{urllib.parse.quote(hostname)}',
+            bsky_appview_pfx="https://api.bsky.app",
+            bsky_appview_did="did:web:api.bsky.app",
+        )
+    assert db.config_is_initialised()
+    db.print_config()
+    return
+
+
+def keygen(k256=False):
+    if k256:
+        privkey = (
+            crypto.keygen_k256()
+        )  # openssl ecparam -name secp256k1 -genkey -noout
+    else:  # default
+        privkey = (
+            crypto.keygen_p256()
+        )  # openssl ecparam -name prime256v1 -genkey -noout
+    print(crypto.privkey_to_pem(privkey), end="")
+
+
+def print_pubkey(pem_arg):
+    with open(pem_arg) as pem:
+        pem_data = pem.read()
+    try:
+        pubkey = crypto.privkey_from_pem(pem_data).public_key()
+    except ValueError:
+        pubkey = crypto.pubkey_from_pem(pem_data)
+    print(crypto.encode_pubkey_as_did_key(pubkey))
+
+
+def plcgen(rotation_key, repo_pubkey, handle, pds_host, genesis_json):
+    with open(rotation_key) as pem:
+        rotation_key = crypto.privkey_from_pem(pem.read())
+    if not repo_pubkey.startswith("did:key:z"):
+        raise ValueError("invalid did:key")
+    genesis = {
+        "type": "plc_operation",
+        "rotationKeys": [
+                crypto.encode_pubkey_as_did_key(
+                    rotation_key.public_key())
+        ],
+        "verificationMethods": {"atproto": repo_pubkey},
+        "alsoKnownAs": ["at://" + handle],
+        "services": {
+            "atproto_pds": {
+                "type": "AtprotoPersonalDataServer",
+                "endpoint": pds_host,
+            }
+        },
+        "prev": None,
+    }
+    genesis["sig"] = crypto.plc_sign(rotation_key, genesis)
+    genesis_digest = hashlib.sha256(
+        cbrrr.encode_dag_cbor(genesis)
+    ).digest()
+    plc = (
+        "did:plc:"
+        + base64.b32encode(genesis_digest)[:24].lower().decode()
+    )
+    with open(genesis_json, "w") as out:
+        json.dump(genesis, out, indent=4)
+    print(plc)
+
+
+def plcsign(unsigned_op, rotation_key, prev_op):
+    with open(unsigned_op) as op_json:
+        op = json.load(op_json)
+    with open(rotation_key) as pem:
+        rotation_key = crypto.privkey_from_pem(pem.read())
+    if prev_op:
+        with open(prev_op) as op_json:
+            prev_op = json.load(op_json)
+        op["prev"] = cbrrr.CID.cidv1_dag_cbor_sha256_32_from(
+            cbrrr.encode_dag_cbor(prev_op)
+        ).encode()
+    del op["sig"]  # remove any existing sig
+    op["sig"] = crypto.plc_sign(rotation_key, op)
+    print(json.dumps(op, indent=4))
+
+
+def config(db, pds_pfx, pds_did, bsky_appview_pfx, bsky_appview_did):
+    db.update_config(
+        pds_pfx=pds_pfx,
+        pds_did=pds_did,
+        bsky_appview_pfx=bsky_appview_pfx,
+        bsky_appview_did=bsky_appview_did,
+    )
+    db.print_config()
+
+
+def account_create(db, did, handle, signing_key, unsafe_password=None):
+    pw = unsafe_password
+    if pw is not None:
+        print(
+            "WARNING: passing a password as a CLI arg is not recommended, for security"
+        )
+    else:
+        pw = getpass("Password for new account: ")
+        if getpass("Confirm password: ") != pw:
+            print("error: password mismatch")
+            return
+    pem_path = signing_key
+    if pem_path:
+        privkey = crypto.privkey_from_pem(open(pem_path).read())
+    else:
+        privkey = crypto.keygen_p256()
+    db.create_account(
+        did=did,
+        handle=handle,
+        password=pw,
+        privkey=privkey,
+    )
+
+
+def run(db, sock_path, host, port):
+    async def run_service_with_client():
+        # TODO: option to use regular unsafe client for local dev testing
+        async with get_ssrf_safe_client() as client:
+            await service.run(
+                db=db,
+                client=client,
+                sock_path=sock_path,
+                host=host,
+                port=int(port),
+            )
+
+    asyncio.run(run_service_with_client())
 
 
 """
 This is the entrypoint for python3 -m glorpds
 """
 if __name__ == "__main__":
-	main()
+    main()
